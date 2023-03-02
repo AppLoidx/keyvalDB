@@ -2,13 +2,19 @@ package com.itmo.lab.generator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.AbstractMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class DataGenerator {
-    private static final Integer KEY_SIZE = 256;
+    private static final Integer KEY_SIZE = 32;
     private static final Integer VAL_SIZE = 512;
+    private static final int SAMPLES_AMOUNT = 100_000;
+    private final String dbFileName;
+
+    public DataGenerator(String dbFileName) {
+        this.dbFileName = dbFileName;
+    }
 
     private byte[] toBytes(String key, int size) {
         byte[] dst = new byte[size];
@@ -33,19 +39,20 @@ public class DataGenerator {
     }
 
     public void generate() {
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("Egor", "11");
-        map.put("Sanya", "15");
-        map.put("Jenya", "22");
+        // generate data: key = User_X; val = Random_Int
+        System.out.print("Writing data to file...");
+        for (int i = 0; i < SAMPLES_AMOUNT; i++) {
+            String key = "User_" + i;
+            String value = String.valueOf(ThreadLocalRandom.current().nextInt(12, 24));
 
-        for (Map.Entry<String, String> entry : map.entrySet()) {
+            Map.Entry<String, String> entry = new AbstractMap.SimpleEntry<>(key, value);
             writeToFile(entry);
         }
-
+        System.out.println(" Done!");
     }
 
     public void writeToFile(Map.Entry<String, String> entry) {
-        try (FileOutputStream outputStream = new FileOutputStream("data.db", true)) { // open in append mode
+        try (FileOutputStream outputStream = new FileOutputStream(dbFileName, true)) { // open in append mode
             byte[] data = new byte[KEY_SIZE + VAL_SIZE];
             byte[] keyBytes = toBytes(entry.getKey(), KEY_SIZE);
             byte[] valBytes = toBytes(entry.getValue(), VAL_SIZE);
@@ -59,12 +66,18 @@ public class DataGenerator {
         }
     }
 
-    public void checkRead() {
-        File file = new File("data.db");
+    public void checkRead() { // function for test
+        File file = new File(dbFileName);
         byte[] bytes = new byte[(int) file.length()];
 
-        try(FileInputStream fis = new FileInputStream(file)) {
-            fis.read(bytes);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            int res = fis.read(bytes);
+
+            if (res == -1) {
+                System.out.println("Database file is empty");
+                return;
+            }
+
             byte[] key = new byte[KEY_SIZE];
             byte[] val = new byte[VAL_SIZE];
             System.arraycopy(bytes, 0, key, 0, KEY_SIZE);
@@ -82,7 +95,7 @@ public class DataGenerator {
     }
 
     public static void main(String[] args) {
-        DataGenerator dataGenerator = new DataGenerator();
+        DataGenerator dataGenerator = new DataGenerator("data.db");
         dataGenerator.generate();
 
         dataGenerator.checkRead();
