@@ -27,46 +27,22 @@ public class HashIndex {
     public void readIndex() {
         // ...
 
-        try {
-            FileInputStream fileInput = new FileInputStream(
-                    "hashmap.index");
-
-            ObjectInputStream objectInput
-                    = new ObjectInputStream(fileInput);
-
+        try (ObjectInputStream objectInput = new ObjectInputStream(new FileInputStream("hashmap.index"))) {
             //noinspection unchecked
-            offsetMap = (HashMap<String, Integer>)objectInput.readObject();
-
-            objectInput.close();
-            fileInput.close();
+            offsetMap = (HashMap<String, Integer>) objectInput.readObject();
         }
-
-        catch (IOException obj1) {
-            obj1.printStackTrace();
+        catch (IOException e) {
+            e.printStackTrace();
         }
-
-        catch (ClassNotFoundException obj2) {
+        catch (ClassNotFoundException e) {
             System.out.println("Class not found");
-            obj2.printStackTrace();
+            e.printStackTrace();
         }
-
     }
 
     private void writeToFile(HashMap<String, Integer> hashMap) {
-        try {
-            FileOutputStream myFileOutStream
-                    = new FileOutputStream(
-                    "hashmap.index");
-
-            ObjectOutputStream myObjectOutStream
-                    = new ObjectOutputStream(myFileOutStream);
-
+        try (ObjectOutputStream myObjectOutStream = new ObjectOutputStream(new FileOutputStream("hashmap.index"))) {
             myObjectOutStream.writeObject(hashMap);
-
-            // closing FileOutputStream and
-            // ObjectOutputStream
-            myObjectOutStream.close();
-            myFileOutStream.close();
         }
         catch (IOException e) {
             e.printStackTrace();
