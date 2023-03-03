@@ -1,3 +1,5 @@
 target
 .idea
-hashmap.index
+src/main/resources
+*.index
+*.db

@@ -4,32 +4,37 @@ import java.io.*;
 import java.util.HashMap;
 
 public class HashIndex {
-    private HashMap<String, Integer> offsetMap = new HashMap<>();
+    private final String indexFineName;
+    private HashMap<String, Long> offsetMap = new HashMap<>();
 
-    public Integer findOffset(String val) {
+    public HashIndex(String indexFineName) {
+        this.indexFineName = indexFineName;
+    }
+
+    public Long findOffset(String val) {
         return offsetMap.get(val);
     }
 
-    public void saveIndex() {
-        writeToFile(offsetMap);
-    }
-
-    public void setOffsetMap(HashMap<String, Integer> offsetMap) {
+    public void setOffsetMap(HashMap<String, Long> offsetMap) {
         clearIndex();   // clear old hash index file
         this.offsetMap = offsetMap;
         saveIndex();    // save new index file
+    }
+
+    private void saveIndex() {
+        writeToFile(offsetMap);
     }
 
     public void clearIndex() {
         writeToFile(new HashMap<>());
     }
 
-    public void readIndex() {
+    public void loadIndex() {
         // ...
 
-        try (ObjectInputStream objectInput = new ObjectInputStream(new FileInputStream("hashmap.index"))) {
+        try (ObjectInputStream objectInput = new ObjectInputStream(new FileInputStream(indexFineName))) {
             //noinspection unchecked
-            offsetMap = (HashMap<String, Integer>) objectInput.readObject();
+            offsetMap = (HashMap<String, Long>) objectInput.readObject();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -40,8 +45,8 @@ public class HashIndex {
         }
     }
 
-    private void writeToFile(HashMap<String, Integer> hashMap) {
-        try (ObjectOutputStream myObjectOutStream = new ObjectOutputStream(new FileOutputStream("hashmap.index"))) {
+    private void writeToFile(HashMap<String, Long> hashMap) {
+        try (ObjectOutputStream myObjectOutStream = new ObjectOutputStream(new FileOutputStream(indexFineName))) {
             myObjectOutStream.writeObject(hashMap);
         }
         catch (IOException e) {

@@ -1,45 +1,30 @@
 package com.itmo.lab.generator;
 
-import com.itmo.lab.FileIO;
-
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 public class DataGenerator {
-    private static final int KEY_SIZE = 32;
-//    private static final Integer VAL_SIZE = 512;
-    private static final int SAMPLES_AMOUNT = 100_000;
-    private final String dbFileName;
+    private final int leftValueLength;
+    private final int rightValueLength;
 
-    public DataGenerator(String dbFileName) {
-        this.dbFileName = dbFileName;
+    public DataGenerator(int leftValueLength, int rightValueLength) {
+        this.leftValueLength = leftValueLength;
+        this.rightValueLength = rightValueLength;
     }
 
-    private String byteToString(byte[] bytes) {
-        int firstNonZeroByteIndex = 0;
-        for (byte b : bytes) {
-            if (b == 0) {
-                break;
-            } else {
-                firstNonZeroByteIndex++;
-            }
-        }
-
-        return new String(bytes, 0, firstNonZeroByteIndex, StandardCharsets.UTF_8);
-    }
-
-    public void generate() {
+    public Function<Integer, Map.Entry<String, String>> createGenerator() {
         // generate data: key = User_X; value = random string
-        System.out.print("Writing data to the file...");
-        for (int i = 0; i < SAMPLES_AMOUNT; i++) {
-            String key = "User_" + i;
-            String value = generateString(20);
+        return (id) -> {
+            String key = "User_" + id;
+            int valueLength = ThreadLocalRandom.current().nextInt(leftValueLength, rightValueLength + 1);
+            String value = generateString(valueLength);
 
-            FileIO fileIO = new FileIO(dbFileName);
-            fileIO.writeKey(key, KEY_SIZE);
-            fileIO.writeValue(value);
-        }
-        System.out.println("Done!");
+            return new AbstractMap.SimpleEntry<>(key, value);
+        };
     }
 
     public String generateString(int length) {
